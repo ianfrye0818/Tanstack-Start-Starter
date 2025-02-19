@@ -93,9 +93,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <div className='flex flex-col min-h-screen'>
             <main className='flex-1 p-4 container mx-auto'>
               {children}
-
-              <ReactQueryDevtools buttonPosition='bottom-right' />
-              <TanStackRouterDevtools position='bottom-left' />
+              {import.meta.env.NODE_ENV !== 'production' && (
+                <>
+                  <ReactQueryDevtools buttonPosition='bottom-right' />
+                  <TanStackRouterDevtools position='bottom-left' />
+                </>
+              )}
               <Toaster />
             </main>
             <Footer />
