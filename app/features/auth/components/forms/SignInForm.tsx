@@ -1,16 +1,15 @@
-import { useSignIn } from '@clerk/tanstack-start';
 import { useRouter } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginSchema } from '@/features/auth/api/schemas/auth.schema';
-import SignInWithMicrosoftButton from '@/features/auth/api/components/SignInWithMicrosoftButton';
+import { loginSchema, LoginSchema } from '../../schemas/auth.schema';
 import { Loader2 } from 'lucide-react';
 import { Form } from '@/shared/components/ui/form';
 import { FormInputItem } from '@/shared/components/ui/form-input-item';
 import { Button } from '@/shared/components/ui/button';
+import { login } from '../../api/authActions';
+import { useMutation } from '@tanstack/react-query';
 
 export default function SignInForm() {
-  const { signIn, isLoaded } = useSignIn();
   const router = useRouter();
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -20,23 +19,42 @@ export default function SignInForm() {
     },
   });
 
+  // const {
+  //   mutateAsync: loginMutation,
+  //   isPending,
+  //   isError: mutationError,
+  // } = useMutation({
+  //   mutationFn: ({ data }: { data: LoginSchema }) => login({ data }),
+  //   onSuccess: (data) => {
+  //     if (data?.status === 'success') {
+  //       router.navigate({ to: '/' });
+  //     } else {
+  //       form.setError('root', { message: data?.context?.message });
+  //     }
+  //   },
+  //   onError: (error) => {
+  //     form.setError('root', { message: 'There was error logging in' });
+  //   },
+  // });
+
+  const disabled = form.formState.isSubmitting;
+  const rootError = form.formState.errors.root?.message;
+  const isError = !!rootError;
+
   const onSubmit = async (data: LoginSchema) => {
     try {
-      const result = await signIn?.create({
-        identifier: data.email,
-        password: data.password,
-      });
+      const result = await login({ data });
 
-      if (result?.status === 'complete') {
+      if (result?.status === 'success') {
         router.navigate({ to: '/' });
+      } else {
+        form.setError('root', { message: result?.context?.message });
       }
     } catch (error) {
-      console.error(['onSubmit error', error]);
+      console.error(error);
       form.setError('root', { message: 'There was error logging in' });
     }
   };
-
-  if (!isLoaded) return null;
 
   return (
     <Form {...form}>
@@ -44,10 +62,7 @@ export default function SignInForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className='flex flex-col gap-4'
       >
-        <SignInWithMicrosoftButton
-          disabled={form.formState.isSubmitting}
-          className='w-full'
-        />
+        <h1 className='text-2xl font-bold'>Login</h1>
         <FormInputItem<typeof loginSchema>
           control={form.control}
           label='Email'
@@ -62,14 +77,13 @@ export default function SignInForm() {
           placeholder='Enter your password'
         />
         <Button
-          disabled={form.formState.isSubmitting}
+          disabled={disabled}
           type='submit'
         >
-          {form.formState.isSubmitting ? <Loader2 className='w-4 h-4 animate-spin' /> : 'Login'}
+          {disabled ? <Loader2 className='w-4 h-4 animate-spin' /> : 'Login'}
         </Button>
-        {form.formState.errors.root && (
-          <p className='text-sm italic text-green-600'>{form.formState.errors.root.message}</p>
-        )}
+        <p className='text-sm italic'>Don't have an account? Please see admin for access</p>
+        {isError && <p className='text-sm italic text-red-600 text-center'>{rootError}</p>}
       </form>
     </Form>
   );

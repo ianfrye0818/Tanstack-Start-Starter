@@ -1,4 +1,3 @@
-import { ClerkProvider } from '@clerk/tanstack-start';
 import { QueryClient } from '@tanstack/react-query';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
@@ -6,27 +5,22 @@ import * as React from 'react';
 import { Toaster } from 'sonner';
 import { DefaultCatchBoundary } from '~/components/DefaultCatchBoundary';
 import { NotFound } from '~/components/NotFound';
-import { getClerkUser } from '~/features/auth/api/authState';
 import appCss from '~/shared/styles/app.css?url';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Footer from '~/shared/components/layout/Footer';
+import { getUser } from '~/features/auth/api/auth-actions';
+import { UserEntity } from '~/features/auth/models/UserEntity';
 
 type AppContext = {
   queryClient: QueryClient;
-  clerkUser: {
-    userId: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  } | null;
+  user: UserEntity | null;
 };
 
 export const Route = createRootRouteWithContext<AppContext>()({
-  beforeLoad: async ({ context }) => {
-    const userObj = await getClerkUser();
+  beforeLoad: async () => {
+    const resp = await getUser();
     return {
-      ...context,
-      clerkUser: userObj,
+      user: resp.data,
     };
   },
   head: () => ({
@@ -84,28 +78,26 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html>
-        <head>
-          <HeadContent />
-        </head>
-        <body>
-          <div className='flex flex-col min-h-screen'>
-            <main className='flex-1 p-4 container mx-auto'>
-              {children}
-              {import.meta.env.NODE_ENV !== 'production' && (
-                <>
-                  <ReactQueryDevtools buttonPosition='bottom-right' />
-                  <TanStackRouterDevtools position='bottom-left' />
-                </>
-              )}
-              <Toaster />
-            </main>
-            <Footer />
-            <Scripts />
-          </div>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <div className='flex flex-col min-h-screen'>
+          <main className='flex-1 p-4 container mx-auto'>
+            {children}
+            {import.meta.env.NODE_ENV !== 'production' && (
+              <>
+                <ReactQueryDevtools buttonPosition='bottom-right' />
+                <TanStackRouterDevtools position='bottom-left' />
+              </>
+            )}
+            <Toaster />
+          </main>
+          <Footer />
+          <Scripts />
+        </div>
+      </body>
+    </html>
   );
 }

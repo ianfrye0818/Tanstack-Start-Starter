@@ -1,5 +1,9 @@
-import SignInForm from '@/features/auth/api/components/forms/SignInForm';
+import SignInForm from '../components/forms/SignInForm';
 
 export default function SignInPage() {
-  return <SignInForm />;
+  return (
+    <div className='w-full max-w-md mx-auto p-4 border rounded-md bg-blue-50'>
+      <SignInForm />
+    </div>
+  );
 }

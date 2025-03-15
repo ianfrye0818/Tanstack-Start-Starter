@@ -7,13 +7,23 @@ import { routerWithQueryClient } from '@tanstack/react-router-with-query';
 
 const queryClient = new QueryClient();
 
+export type UserEntity = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  image: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export function createRouter() {
   const queryClient = new QueryClient();
 
   return routerWithQueryClient(
     createTanStackRouter({
       routeTree,
-      context: { queryClient, clerkUser: null },
+      context: { queryClient, user: null },
       defaultPreload: 'intent',
       defaultErrorComponent: DefaultCatchBoundary,
       defaultNotFoundComponent: () => <NotFound />,
